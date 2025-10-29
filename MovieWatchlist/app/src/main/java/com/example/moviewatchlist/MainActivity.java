@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //  API request
+    //  API
     private void searchMovies(String query) {
         String url = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + query;
 
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Parse JSON results
+    // JSON requests
     private void parseMovieResults(String json) {
         movieTitles.clear();
         try {
