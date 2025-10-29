@@ -1,9 +1,11 @@
 package com.example.moviewatchlist;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
@@ -19,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     private OkHttpClient client = new OkHttpClient();
     private EditText searchField;
-    private Button searchButton;
+    private Button searchButton, logoutButton, watchlistButton;
     private ListView resultsList;
     private ArrayAdapter<String> adapter;
     private ArrayList<String> movieTitles = new ArrayList<>();
@@ -36,14 +38,25 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
+        // UI elements
         searchField = findViewById(R.id.searchField);
         searchButton = findViewById(R.id.searchButton);
         resultsList = findViewById(R.id.resultsList);
+        logoutButton = findViewById(R.id.logoutButton);
+        watchlistButton = findViewById(R.id.watchlistButton);
 
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, movieTitles);
         resultsList.setAdapter(adapter);
 
-        // procurar filmes
+        // Redirect to login if not logged in
+        if (auth.getCurrentUser() == null) {
+            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        // Search for movies
         searchButton.setOnClickListener(v -> {
             String query = searchField.getText().toString().trim();
             if (!query.isEmpty()) {
@@ -51,14 +64,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // adicionar a watchlist quando se pesquisa
+        // Add to watchlist when user clicks a movie
         resultsList.setOnItemClickListener((parent, view, position, id) -> {
             String title = movieTitles.get(position);
             addToWatchlist(title);
         });
+
+        // Logout button
+        logoutButton.setOnClickListener(v -> {
+            auth.signOut();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        });
+
+        // Watchlist button (to open watchlist activity)
+        watchlistButton.setOnClickListener(v -> {
+            startActivity(new Intent(this, WatchlistActivity.class));
+        });
     }
 
-    //  API
+    // Search movies from TMDB API
     private void searchMovies(String query) {
         String url = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + query;
 
@@ -80,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // JSON requests
+    // Parse JSON and update list
     private void parseMovieResults(String json) {
         movieTitles.clear();
         try {
@@ -99,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //  adicionar um filme selecionado a watchlist
+    // Add movie to Firestore watchlist
     private void addToWatchlist(String title) {
         if (auth.getCurrentUser() == null) {
             Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();

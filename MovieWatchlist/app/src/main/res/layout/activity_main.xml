@@ -45,8 +45,15 @@
             android:layout_weight="1" />
 
     <Button
-            android:id="@+id/myWatchlistButton"
+            android:id="@+id/watchlistButton"
             android:text="My Watchlist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+    <Button
+            android:id="@+id/logoutButton"
+            android:text="Logout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp" />
