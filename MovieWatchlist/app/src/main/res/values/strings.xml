@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Movie Watchlist</string>
+    <string name="tmdb_api_key">918ad26dfa6acc69159fa52570caaf8c</string>
+</resources>
