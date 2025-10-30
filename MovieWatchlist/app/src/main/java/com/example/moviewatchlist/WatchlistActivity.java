@@ -29,6 +29,14 @@ public class WatchlistActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         db = FirebaseFirestore.getInstance();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Toast.makeText(this, "Not logged in", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         adapter = new WatchlistAdapter(watchlist);
