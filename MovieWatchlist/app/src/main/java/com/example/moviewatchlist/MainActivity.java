@@ -5,12 +5,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.SetOptions;
-
 import com.google.gson.*;
 import okhttp3.*;
 
@@ -28,17 +28,21 @@ public class MainActivity extends AppCompatActivity {
     private String apiKey;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private Map<String, String> moviePosterUrls = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Movie Watchlist");
+
         apiKey = getString(R.string.tmdb_api_key);
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        // UI elements
         searchField = findViewById(R.id.searchField);
         searchButton = findViewById(R.id.searchButton);
         resultsList = findViewById(R.id.resultsList);
@@ -48,15 +52,12 @@ public class MainActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, movieTitles);
         resultsList.setAdapter(adapter);
 
-        // Redirect to login if not logged in
         if (auth.getCurrentUser() == null) {
-            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
-        // Search for movies
         searchButton.setOnClickListener(v -> {
             String query = searchField.getText().toString().trim();
             if (!query.isEmpty()) {
@@ -64,39 +65,31 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Add to watchlist when user clicks a movie
         resultsList.setOnItemClickListener((parent, view, position, id) -> {
             String title = movieTitles.get(position);
-            addToWatchlist(title);
+            String posterUrl = moviePosterUrls.get(title);
+            addToWatchlist(title, posterUrl);
         });
 
-        // Logout button
         logoutButton.setOnClickListener(v -> {
             auth.signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
 
-        // Watchlist button (to open watchlist activity)
-        watchlistButton.setOnClickListener(v -> {
-            startActivity(new Intent(this, WatchlistActivity.class));
-        });
+        watchlistButton.setOnClickListener(v -> startActivity(new Intent(this, WatchlistActivity.class)));
     }
 
-    // Search movies from TMDB API
     private void searchMovies(String query) {
         String url = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + query;
-
         Request request = new Request.Builder().url(url).build();
 
         client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
+            @Override public void onFailure(Call call, IOException e) {
                 Log.e("TMDB", "API request failed", e);
             }
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            @Override public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     String json = response.body().string();
                     runOnUiThread(() -> parseMovieResults(json));
@@ -105,9 +98,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Parse JSON and update list
     private void parseMovieResults(String json) {
         movieTitles.clear();
+        moviePosterUrls.clear();
         try {
             JsonObject root = JsonParser.parseString(json).getAsJsonObject();
             JsonArray results = root.getAsJsonArray("results");
@@ -115,7 +108,12 @@ public class MainActivity extends AppCompatActivity {
             for (JsonElement el : results) {
                 JsonObject movie = el.getAsJsonObject();
                 String title = movie.get("title").getAsString();
+                String posterPath = movie.has("poster_path") && !movie.get("poster_path").isJsonNull()
+                        ? "https://image.tmdb.org/t/p/w500" + movie.get("poster_path").getAsString()
+                        : "";
+
                 movieTitles.add(title);
+                moviePosterUrls.put(title, posterPath);
             }
 
             adapter.notifyDataSetChanged();
@@ -124,8 +122,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Add movie to Firestore watchlist
-    private void addToWatchlist(String title) {
+    private void addToWatchlist(String title, String posterUrl) {
         if (auth.getCurrentUser() == null) {
             Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
             return;
@@ -136,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
         Map<String, Object> data = new HashMap<>();
         data.put("title", title);
-        data.put("posterUrl", ""); // optional
+        data.put("posterUrl", posterUrl);
         data.put("rating", 0);
         data.put("addedAt", FieldValue.serverTimestamp());
 

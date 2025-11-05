@@ -3,10 +3,11 @@ package com.example.moviewatchlist;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.bumptech.glide.Glide;
 import java.util.List;
 
 public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.ViewHolder> {
@@ -19,18 +20,22 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
 
     @NonNull
     @Override
-    public WatchlistAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // simple 2-line built-in layout
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(android.R.layout.simple_list_item_2, parent, false);
+                .inflate(R.layout.item_watchlist_movie, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull WatchlistAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Movie m = movies.get(position);
-        holder.title.setText(m.getTitle() != null ? m.getTitle() : "Untitled");
-        holder.subtitle.setText("Rating: " + m.getRating());
+        holder.title.setText(m.getTitle());
+        holder.rating.setText("Rating: " + m.getRating());
+
+        Glide.with(holder.itemView.getContext())
+                .load(m.getPosterUrl())
+                .placeholder(R.drawable.placeholder)
+                .into(holder.poster);
     }
 
     @Override
@@ -39,13 +44,14 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title;
-        TextView subtitle;
+        ImageView poster;
+        TextView title, rating;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            title = itemView.findViewById(android.R.id.text1);
-            subtitle = itemView.findViewById(android.R.id.text2);
+            poster = itemView.findViewById(R.id.posterImage);
+            title = itemView.findViewById(R.id.movieTitle);
+            rating = itemView.findViewById(R.id.movieRating);
         }
     }
 }

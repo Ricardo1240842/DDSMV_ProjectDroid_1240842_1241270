@@ -1,61 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:padding="16dp"
-              tools:context=".MainActivity">
+              android:padding="8dp">
 
-    <TextView
-            android:id="@+id/welcomeText"
-            android:text="Welcome to Movie Watchlist!"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:gravity="center" />
+    <!-- Reusable toolbar -->
+    <include layout="@layout/toolbar_layout" />
 
+    <!-- Search field -->
     <EditText
             android:id="@+id/searchField"
-            android:hint="Search for movies or shows..."
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp" />
+            android:hint="Search for a movie"
+            android:inputType="text"
+            android:padding="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp" />
 
+    <!-- Search button -->
     <Button
             android:id="@+id/searchButton"
-            android:text="Search"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-    <TextView
-            android:id="@+id/resultsLabel"
-            android:text="Results:"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" />
+            android:text="Search" />
 
+    <!-- Results list -->
     <ListView
             android:id="@+id/resultsList"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
-
-    <Button
-            android:id="@+id/watchlistButton"
-            android:text="My Watchlist"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:dividerHeight="8dp"
             android:layout_marginTop="8dp" />
 
-    <Button
-            android:id="@+id/logoutButton"
-            android:text="Logout"
+    <!-- Buttons at the bottom -->
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
 
+        <Button
+                android:id="@+id/watchlistButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="My Watchlist" />
+
+        <Button
+                android:id="@+id/logoutButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Logout" />
+    </LinearLayout>
 </LinearLayout>
