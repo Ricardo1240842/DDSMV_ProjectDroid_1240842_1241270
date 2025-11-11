@@ -2,18 +2,15 @@ package com.example.moviewatchlist;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.SetOptions;
 import com.google.gson.*;
 import okhttp3.*;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -35,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Movie Watchlist");
@@ -60,9 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
         searchButton.setOnClickListener(v -> {
             String query = searchField.getText().toString().trim();
-            if (!query.isEmpty()) {
-                searchMovies(query);
-            }
+            if (!query.isEmpty()) searchMovies(query);
         });
 
         resultsList.setOnItemClickListener((parent, view, position, id) -> {
@@ -85,10 +81,7 @@ public class MainActivity extends AppCompatActivity {
         Request request = new Request.Builder().url(url).build();
 
         client.newCall(request).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) {
-                Log.e("TMDB", "API request failed", e);
-            }
-
+            @Override public void onFailure(Call call, IOException e) { e.printStackTrace(); }
             @Override public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     String json = response.body().string();
@@ -104,22 +97,17 @@ public class MainActivity extends AppCompatActivity {
         try {
             JsonObject root = JsonParser.parseString(json).getAsJsonObject();
             JsonArray results = root.getAsJsonArray("results");
-
             for (JsonElement el : results) {
                 JsonObject movie = el.getAsJsonObject();
                 String title = movie.get("title").getAsString();
                 String posterPath = movie.has("poster_path") && !movie.get("poster_path").isJsonNull()
                         ? "https://image.tmdb.org/t/p/w500" + movie.get("poster_path").getAsString()
                         : "";
-
                 movieTitles.add(title);
                 moviePosterUrls.put(title, posterPath);
             }
-
             adapter.notifyDataSetChanged();
-        } catch (Exception e) {
-            Log.e("TMDB", "Error parsing results", e);
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void addToWatchlist(String title, String posterUrl) {

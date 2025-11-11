@@ -5,10 +5,9 @@
               android:layout_height="match_parent"
               android:padding="8dp">
 
-    <!-- Reusable toolbar -->
+    <!-- Include Toolbar -->
     <include layout="@layout/toolbar_layout" />
 
-    <!-- Search field -->
     <EditText
             android:id="@+id/searchField"
             android:layout_width="match_parent"
@@ -16,17 +15,14 @@
             android:hint="Search for a movie"
             android:inputType="text"
             android:padding="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginTop="8dp" />
 
-    <!-- Search button -->
     <Button
             android:id="@+id/searchButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Search" />
 
-    <!-- Results list -->
     <ListView
             android:id="@+id/resultsList"
             android:layout_width="match_parent"
@@ -35,13 +31,11 @@
             android:dividerHeight="8dp"
             android:layout_marginTop="8dp" />
 
-    <!-- Buttons at the bottom -->
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="8dp">
+            android:gravity="center">
 
         <Button
                 android:id="@+id/watchlistButton"

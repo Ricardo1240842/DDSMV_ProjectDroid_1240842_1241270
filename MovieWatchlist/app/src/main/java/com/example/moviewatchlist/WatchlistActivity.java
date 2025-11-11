@@ -42,7 +42,6 @@ public class WatchlistActivity extends AppCompatActivity {
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         adapter = new WatchlistAdapter(watchlist);
         recyclerView.setAdapter(adapter);
-
         loadWatchlist();
     }
 

@@ -5,10 +5,9 @@
               android:layout_height="match_parent"
               android:padding="8dp">
 
-    <!-- Reusable toolbar -->
+    <!-- Include Toolbar -->
     <include layout="@layout/toolbar_layout" />
 
-    <!-- RecyclerView for watchlist -->
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/watchlistRecycler"
             android:layout_width="match_parent"
