@@ -13,6 +13,8 @@
             android:theme="@style/Theme.MovieWatchlist">
         <activity android:name=".MainActivity"/>
         <activity android:name=".WatchlistActivity"/>
+        <activity android:name=".Top10Activity" />
+
 
         <activity
                 android:name=".LoginActivity"

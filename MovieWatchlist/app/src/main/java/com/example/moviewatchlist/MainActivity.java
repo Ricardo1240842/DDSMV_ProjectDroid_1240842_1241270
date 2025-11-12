@@ -2,133 +2,160 @@ package com.example.moviewatchlist;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.SetOptions;
-import com.google.gson.*;
-import okhttp3.*;
+import com.google.firebase.firestore.Transaction;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 public class MainActivity extends AppCompatActivity {
 
-    private OkHttpClient client = new OkHttpClient();
-    private EditText searchField;
-    private Button searchButton, logoutButton, watchlistButton;
-    private ListView resultsList;
-    private ArrayAdapter<String> adapter;
-    private ArrayList<String> movieTitles = new ArrayList<>();
-    private String apiKey;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-    private Map<String, String> moviePosterUrls = new HashMap<>();
+    private RecyclerView resultsList;
+    private EditText searchField;
+    private MovieAdapter adapter;
+    private List<Movie> movieResults;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Movie Watchlist");
+        setTitle("Movie Watchlist");
 
-        apiKey = getString(R.string.tmdb_api_key);
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        searchField = findViewById(R.id.searchField);
-        searchButton = findViewById(R.id.searchButton);
         resultsList = findViewById(R.id.resultsList);
-        logoutButton = findViewById(R.id.logoutButton);
-        watchlistButton = findViewById(R.id.watchlistButton);
+        searchField = findViewById(R.id.searchField);
+        Button searchButton = findViewById(R.id.searchButton);
+        Button watchlistButton = findViewById(R.id.watchlistButton);
+        Button logoutButton = findViewById(R.id.logoutButton);
+        Button top10Button = findViewById(R.id.top10Button);
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, movieTitles);
+        resultsList.setLayoutManager(new LinearLayoutManager(this));
+        movieResults = new ArrayList<>();
+        adapter = new MovieAdapter(this, movieResults, db, this::updateGlobalRating);
         resultsList.setAdapter(adapter);
-
-        if (auth.getCurrentUser() == null) {
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
-        }
 
         searchButton.setOnClickListener(v -> {
             String query = searchField.getText().toString().trim();
             if (!query.isEmpty()) searchMovies(query);
+            else Toast.makeText(this, "Enter a movie title", Toast.LENGTH_SHORT).show();
         });
 
-        resultsList.setOnItemClickListener((parent, view, position, id) -> {
-            String title = movieTitles.get(position);
-            String posterUrl = moviePosterUrls.get(title);
-            addToWatchlist(title, posterUrl);
-        });
+        watchlistButton.setOnClickListener(v ->
+                startActivity(new Intent(this, WatchlistActivity.class)));
+
+        top10Button.setOnClickListener(v ->
+                startActivity(new Intent(this, Top10Activity.class)));
 
         logoutButton.setOnClickListener(v -> {
             auth.signOut();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
-
-        watchlistButton.setOnClickListener(v -> startActivity(new Intent(this, WatchlistActivity.class)));
     }
 
-    private void searchMovies(String query) {
-        String url = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + query;
+    private void searchMovies(String title) {
+        String apiKey = getString(R.string.tmdb_api_key);
+        String url = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + title;
+
+        OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) { e.printStackTrace(); }
-            @Override public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
-                    String json = response.body().string();
-                    runOnUiThread(() -> parseMovieResults(json));
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                runOnUiThread(() ->
+                        Toast.makeText(MainActivity.this, "Network error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                if (!response.isSuccessful() || response.body() == null) {
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "API error", Toast.LENGTH_SHORT).show());
+                    return;
                 }
+                String json = response.body().string();
+                runOnUiThread(() -> parseMovies(json));
             }
         });
     }
 
-    private void parseMovieResults(String json) {
-        movieTitles.clear();
-        moviePosterUrls.clear();
+    private void parseMovies(String json) {
+        movieResults.clear();
         try {
-            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-            JsonArray results = root.getAsJsonArray("results");
-            for (JsonElement el : results) {
-                JsonObject movie = el.getAsJsonObject();
-                String title = movie.get("title").getAsString();
-                String posterPath = movie.has("poster_path") && !movie.get("poster_path").isJsonNull()
-                        ? "https://image.tmdb.org/t/p/w500" + movie.get("poster_path").getAsString()
-                        : "";
-                movieTitles.add(title);
-                moviePosterUrls.put(title, posterPath);
+            JSONObject root = new JSONObject(json);
+            JSONArray results = root.getJSONArray("results");
+
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject obj = results.getJSONObject(i);
+                Movie movie = new Movie();
+                movie.setTitle(obj.getString("title"));
+                movie.setTmdbId(obj.getString("id"));
+                movie.setPosterUrl(obj.isNull("poster_path") ? null :
+                        "https://image.tmdb.org/t/p/w500" + obj.getString("poster_path"));
+                movie.setRating(0);
+                movieResults.add(movie);
             }
             adapter.notifyDataSetChanged();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error parsing movie data", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
     }
 
-    private void addToWatchlist(String title, String posterUrl) {
-        if (auth.getCurrentUser() == null) {
-            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
-            return;
-        }
+    // Updated rating method: stores full movie object in Firestore
+    private void updateGlobalRating(String movieId, double newRating, Movie movie) {
+        DocumentReference ref = db.collection("movies").document(movieId);
 
-        String userId = auth.getCurrentUser().getUid();
-        String movieId = title.replaceAll("\\s+", "_").toLowerCase();
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            DocumentSnapshot snapshot = transaction.get(ref);
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("title", title);
-        data.put("posterUrl", posterUrl);
-        data.put("rating", 0);
-        data.put("addedAt", FieldValue.serverTimestamp());
+            double currentAvg = 0;
+            long total = 0;
 
-        db.collection("users").document(userId)
-                .collection("watchlist").document(movieId)
-                .set(data, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Added to watchlist!", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            if (snapshot.exists()) {
+                currentAvg = snapshot.contains("avgRating") && snapshot.getDouble("avgRating") != null
+                        ? snapshot.getDouble("avgRating") : 0;
+                total = snapshot.contains("totalRatings") && snapshot.getLong("totalRatings") != null
+                        ? snapshot.getLong("totalRatings") : 0;
+            }
+
+            double newAvg = ((currentAvg * total) + newRating) / (total + 1);
+            movie.setAvgRating(newAvg);
+
+            transaction.set(ref, movie, SetOptions.merge());
+            return null;
+        }).addOnSuccessListener(aVoid ->
+                Toast.makeText(this, "Rating updated!", Toast.LENGTH_SHORT).show()
+        ).addOnFailureListener(e ->
+                Toast.makeText(this, "Error updating rating: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+        );
     }
 }
