@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         adapter = new MovieAdapter(this, movieResults, db, this::updateGlobalRating);
         resultsList.setAdapter(adapter);
 
-        // Search button triggers TMDB API request
+        // TMDB API request
         searchButton.setOnClickListener(v -> {
             String query = searchField.getText().toString().trim();
             if (!query.isEmpty()) {
@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         top10Button.setOnClickListener(v ->
                 startActivity(new Intent(this, Top10Activity.class)));
 
-        // Logout and redirect to LoginActivity
+        // Logout and go to LoginActivity
         logoutButton.setOnClickListener(v -> {
             auth.signOut();
             startActivity(new Intent(this, LoginActivity.class));
@@ -102,18 +102,18 @@ public class MainActivity extends AppCompatActivity {
 
     /*
      Executes a query to TMDB API using OkHttp.
-     Converts the movie title into a search request URL.
+     Converts the movie title into a search request.
     */
     private void searchMovies(String title) {
         String apiKey = getString(R.string.tmdb_api_key);
 
-        // TMDB search endpoint
+        // TMDB search
         String url = "https://api.themoviedb.org/3/search/movie?api_key=" + apiKey + "&query=" + title;
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();
 
-        // Make the HTTP request asynchronously
+        // Make the HTTP request
         client.newCall(request).enqueue(new okhttp3.Callback() {
 
             @Override
@@ -130,10 +130,10 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Convert API response to string
+                // Convert API to string
                 String json = response.body().string();
 
-                // Process the results on the UI thread
+                // Process the results
                 runOnUiThread(() -> parseMovies(json));
             }
         });
@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
             JSONObject root = new JSONObject(json);
             JSONArray results = root.getJSONArray("results");
 
-            // Loop through TMDB result list
+            // Loop through TMDB results
             for (int i = 0; i < results.length(); i++) {
                 JSONObject obj = results.getJSONObject(i);
 
@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-     Updates global rating inside the "movies" Firestore collection.
+     Updates global rating inside the "movies" collection.
      Global rating is shared by all users and stored per movie document.
 
      The method:
@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                     double currentAvg = 0;
                     long total = 0;
 
-                    // Extracts existing values if they exist
+                    // Extracts existing values
                     if (snapshot.exists()) {
                         currentAvg = snapshot.contains("avgRating") && snapshot.getDouble("avgRating") != null
                                 ? snapshot.getDouble("avgRating")

@@ -7,11 +7,11 @@ import android.widget.*;
 import com.google.firebase.auth.FirebaseAuth;
 
 /*
- LoginActivity handles user authentication.
+ LoginActivity is used 4 auth.
  It allows:
- - Logging in with an existing email/password
+ - Logging in with an existing account
  - Creating a new account
- - Redirecting an already authenticated user directly to MainActivity
+ - if logged in go to mainactivity
 */
 public class LoginActivity extends AppCompatActivity {
 
@@ -24,13 +24,11 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize Firebase Authentication
+        // Initialize Firebase auth
         mAuth = FirebaseAuth.getInstance();
 
         /*
-         If a user is already logged in, skip login screen
-         and go directly to the app's home page (MainActivity).
-         This prevents making the user log in again every time.
+         If logged in go to main page
         */
         if (mAuth.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
@@ -49,8 +47,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /*
-     Attempts to authenticate the user using Firebase Authentication.
-     Validates input before trying to log in.
+     tries to authenticate.
+     validates input.
     */
     private void loginUser() {
         String email = emailField.getText().toString();
@@ -63,9 +61,8 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         /*
-         Firebase Authentication method for login.
-         If successful -> redirect to MainActivity.
-         If failed -> display the error message.
+         Firebase auth method 4 login. (if suceful go to main page)
+
         */
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
@@ -82,8 +79,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /*
-     Creates a new user account using Firebase Authentication.
-     Also validates input.
+     Creates new user and validate input
     */
     private void registerUser() {
         String email = emailField.getText().toString();
@@ -96,9 +92,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         /*
-         Firebase method for registering a new account.
-         If successful -> automatically logs in and opens MainActivity.
-         If failed -> show the error returned by Firebase.
+         creating account if suceful go 2 main page
         */
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {

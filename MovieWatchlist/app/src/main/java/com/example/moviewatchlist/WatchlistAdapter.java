@@ -21,19 +21,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
 /*
- WatchlistAdapter displays all movies saved by the user in their personal watchlist.
- It allows:
-   - Viewing stored movie title, poster, and personal rating
-   - Updating the rating inside the watchlist
-   - Removing movies from the user's watchlist
-
- Each movie shown in this adapter comes from Firestore under:
-   users/{userId}/watchlist/{movieId}
+UI 4 watchlst activity
 */
 public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.ViewHolder> {
 
     private final Context context;
-    private final List<Movie> movies;       // movies stored in the user's watchlist
+    private final List<Movie> movies;
     private final FirebaseFirestore db;
 
     public WatchlistAdapter(Context context, List<Movie> movies) {
@@ -42,9 +35,7 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
         this.db = FirebaseFirestore.getInstance();
     }
 
-    /*
-     Creates the view for each watchlist item (item_watchlist_movie.xml)
-    */
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -54,31 +45,26 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
     }
 
     /*
-     Binds data from a Movie object into the UI elements:
-       - Title
-       - Poster
-       - User rating (editable)
-       - Remove button
+    gets data from a movie object and puts it into ui
     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Movie m = movies.get(position);
 
-        // Set movie title
+
         holder.title.setText(m.getTitle());
 
-        // Display personal rating saved in watchlist
+
         holder.ratingBar.setRating(m.getRating());
 
-        // Load poster using Glide
+
         Glide.with(context)
                 .load(m.getPosterUrl())
                 .placeholder(R.drawable.placeholder)
                 .into(holder.poster);
 
         /*
-         When the user changes their watchlist rating, update Firestore.
-         Only triggers when the change is made by the user, not programmatically.
+         update firestore rating
         */
         holder.ratingBar.setOnRatingBarChangeListener((bar, rating, fromUser) -> {
             if (fromUser) {
@@ -92,8 +78,7 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
     }
 
     /*
-     Updates only the "rating" field in the Firestore watchlist document.
-     This does not affect global ratings.
+     Updates personal rating
     */
     private void updateRatingInFirestore(Movie movie) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -111,8 +96,7 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
     }
 
     /*
-     Removes a movie document from the user's watchlist in Firestore
-     and updates the local RecyclerView list accordingly.
+     Removes a movie from the users firestore
     */
     private void removeFromWatchlist(Movie movie, int position) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -124,7 +108,7 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
 
         ref.delete()
                 .addOnSuccessListener(aVoid -> {
-                    movies.remove(position); // remove locally
+                    movies.remove(position);
                     notifyItemRemoved(position);
                     Toast.makeText(context, "Removed from Watchlist", Toast.LENGTH_SHORT).show();
                 })
@@ -140,10 +124,7 @@ public class WatchlistAdapter extends RecyclerView.Adapter<WatchlistAdapter.View
         return movies.size();
     }
 
-    /*
-     Holds references to UI components for each watchlist item,
-     improving performance by avoiding repeated findViewById calls.
-    */
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView poster;
         TextView title;

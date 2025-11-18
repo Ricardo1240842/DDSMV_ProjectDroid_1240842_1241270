@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /*
- Top10Activity displays the global top 10 movies in the Firestore "movies" collection.
- Movies are ordered by avgRating (descending), so the highest-rated movies appear first.
+ Top10Activity shows the global top10 ranking
 */
 public class Top10Activity extends AppCompatActivity {
 
@@ -25,12 +24,7 @@ public class Top10Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top10);
 
-        /*
 
-          SETUP TOOLBAR
-          Adds a title and back arrow in the action bar
-
-        */
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -39,15 +33,11 @@ public class Top10Activity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        /*
 
-          SETUP RECYCLER VIEW
-
-        */
         recyclerView = findViewById(R.id.top10Recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Attach adapter with empty list initially
+
         adapter = new Top10Adapter(topMovies);
         recyclerView.setAdapter(adapter);
 
@@ -59,10 +49,8 @@ public class Top10Activity extends AppCompatActivity {
     }
 
     /*
-
       Load top 10 movies from Firestore
-      Sorts by "avgRating" descending and limits to 10
-
+      Sorts by "avgRating"
     */
     private void loadTopMovies() {
         db.collection("movies")
@@ -71,7 +59,7 @@ public class Top10Activity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
 
-                    topMovies.clear(); // reset list before adding new results
+                    topMovies.clear();
 
                     // Convert Firestore docs into Movie objects
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
@@ -79,7 +67,7 @@ public class Top10Activity extends AppCompatActivity {
                         topMovies.add(movie);
                     }
 
-                    // Refresh RecyclerView
+
                     adapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e ->
@@ -87,9 +75,7 @@ public class Top10Activity extends AppCompatActivity {
                 );
     }
 
-    /*
-     Enables the back arrow to return to the previous screen
-    */
+
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();

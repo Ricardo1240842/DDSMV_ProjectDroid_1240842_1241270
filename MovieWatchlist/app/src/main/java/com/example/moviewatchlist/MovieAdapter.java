@@ -21,15 +21,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
 /*
- MovieAdapter manages how movie search results are displayed in MainActivity.
- It renders:
- - Poster image
- - Movie title
- - RatingBar for user rating input
- - Button to add movie to watchlist
-
- It also notifies MainActivity whenever a user changes a movie rating
- so the app can update the global Firestore rating.
+MovieAdapter is for UI elements
+it also is used for updating the globl ranking
 */
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
 
@@ -38,28 +31,15 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     private final FirebaseFirestore db;
 
     /*
-     Listener interface used to notify MainActivity when a user sets a rating.
-     This allows MainActivity to update the global rating stored in Firestore.
+     updating global rting
     */
     private final RatingUpdateListener ratingUpdateListener;
 
-    /*
-     Callback the MainActivity must implement.
-     movieId = Firestore document ID
-     rating = rating the user selected
-     movie = full movie object so Firestore can save additional data
-    */
+
     public interface RatingUpdateListener {
         void onRatingUpdate(String movieId, double rating, Movie movie);
     }
 
-    /*
-     Constructor initializes:
-     - Context
-     - List of movies to show
-     - Firestore instance (for adding to watchlist)
-     - Rating update callback
-    */
     public MovieAdapter(Context context, List<Movie> movies, FirebaseFirestore db,
                         RatingUpdateListener listener) {
         this.context = context;
@@ -68,10 +48,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         this.ratingUpdateListener = listener;
     }
 
-    /*
-     Creates a new row view using item_movie.xml.
-     This is done when RecyclerView needs a new ViewHolder.
-    */
+
     @NonNull
     @Override
     public MovieAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -79,10 +56,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         return new ViewHolder(view);
     }
 
-    /*
-     Called for every visible row.
-     Binds the movie data to the UI components in the ViewHolder.
-    */
+
     @Override
     public void onBindViewHolder(@NonNull MovieAdapter.ViewHolder holder, int position) {
         Movie movie = movies.get(position);
@@ -96,13 +70,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
                 .placeholder(R.drawable.placeholder)
                 .into(holder.poster);
 
-        // Set pre-existing rating (always zero in search results)
+        // Set pre-existing rating
         holder.ratingBar.setRating(movie.getRating());
 
         /*
          When the user touches the rating bar:
          - Update the local movie object with the user's rating
-         - Notify MainActivity (so global avgRating can be recalculated)
+         - calculate avgrating
         */
         holder.ratingBar.setOnRatingBarChangeListener((bar, rating, fromUser) -> {
             if (fromUser) {
@@ -115,16 +89,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         });
 
         /*
-         Handles adding the movie to the user's watchlist.
-         Stored under: users/{userId}/watchlist/{tmdbId}
+         add to watchlist
         */
         holder.addToWatchlistButton.setOnClickListener(v -> addToWatchlist(movie));
     }
 
     /*
-     Adds the selected movie to the current user's watchlist in Firestore.
-     The full Movie object is stored, including:
-     title, posterUrl, rating, avgRating
+     add to watchlist in firestore
     */
     private void addToWatchlist(Movie movie) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -148,11 +119,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         return movies.size();
     }
 
-    /*
-     ViewHolder holds references to each row's UI components.
-     These references avoid repeated calls to findViewById,
-     improving RecyclerView performance.
-    */
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView poster;
         TextView title;
