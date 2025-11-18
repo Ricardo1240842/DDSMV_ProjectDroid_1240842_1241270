@@ -47,7 +47,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
      Callback the MainActivity must implement.
      movieId = Firestore document ID
      rating = rating the user selected
-     movie = full movie object so Firestore can save additional metadata
+     movie = full movie object so Firestore can save additional data
     */
     public interface RatingUpdateListener {
         void onRatingUpdate(String movieId, double rating, Movie movie);
