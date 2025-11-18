@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         resultsList.setLayoutManager(new LinearLayoutManager(this));
         movieResults = new ArrayList<>();
 
-       
+
         adapter = new MovieAdapter(this, movieResults, db, this::updateGlobalRating);
         resultsList.setAdapter(adapter);
 
@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         watchlistButton.setOnClickListener(v ->
                 startActivity(new Intent(this, WatchlistActivity.class)));
 
-        // Opens Top 10 global rated movies screen
+        // Opens Top 10
         top10Button.setOnClickListener(v ->
                 startActivity(new Intent(this, Top10Activity.class)));
 
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
     /*
      Parses the JSON returned by TMDB.
-     Creates Movie objects based on the API's movie list.
+     Creates Movie objects based on the API movie list.
     */
     private void parseMovies(String json) {
         movieResults.clear();
@@ -152,11 +152,11 @@ public class MainActivity extends AppCompatActivity {
                 movie.setTitle(obj.getString("title"));
                 movie.setTmdbId(obj.getString("id"));
 
-                // Builds the full poster URL or sets null if missing
+                // poster URL
                 movie.setPosterUrl(obj.isNull("poster_path") ? null :
                         "https://image.tmdb.org/t/p/w500" + obj.getString("poster_path"));
 
-                // Default user rating is 0 until user selects one
+                // Default user rating is 0
                 movie.setRating(0);
 
                 movieResults.add(movie);
@@ -171,13 +171,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-     Updates global rating inside the "movies" collection.
-     Global rating is shared by all users and stored per movie document.
-
-     The method:
-     - Reads the current avgRating and totalRatings
-     - Recalculates the average based on the new rating
-     - Updates the document by merging the fields
+     update globl rting inside movies .
+    recalculate avgrating
     */
     private void updateGlobalRating(String movieId, double newRating, Movie movie) {
 

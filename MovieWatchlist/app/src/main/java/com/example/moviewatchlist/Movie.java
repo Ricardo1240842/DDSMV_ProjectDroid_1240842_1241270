@@ -2,48 +2,35 @@ package com.example.moviewatchlist;
 
 /*
  The Movie class represents a movie item used throughout the app.
- It is stored in multiple places:
- - TMDB API search results
- - User watchlists (in Firestore under users/{userId}/watchlist)
- - Global movie ratings collection (movies/{movieId})
-
- This model must include:
-  A no-argument constructor (required by Firestore)
-  Public getters and setters
 */
 public class Movie {
 
     /*
-     The title of the movie.
      stored in the user's watchlist,
      saved in the global movies/{id} document for Top 10.
     */
     private String title;
 
     /*
-     The unique TMDB movie ID.
+
      The document ID in the global "movies"
      The document ID in each user's watchlist
     */
     private String tmdbId;
 
     /*
-     URL to the movie poster.
      Loaded using Glide in all RecyclerViews.
-     Can sometimes be null
+     Can be null
     */
     private String posterUrl;
 
     /*
-     The user’s personal rating .
-     This value is stored inside that user’s watchlist.
-
+     stored inside that user’s watchlist.
     */
     private int rating;
 
     /*
      The global average rating stored in Firestore under "movies/{id}".
-
     */
     private double avgRating;
 

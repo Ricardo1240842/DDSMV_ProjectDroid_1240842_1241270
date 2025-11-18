@@ -50,7 +50,7 @@ public class Top10Activity extends AppCompatActivity {
 
     /*
       Load top 10 movies from Firestore
-      Sorts by "avgRating"
+      Sorts by avgRating
     */
     private void loadTopMovies() {
         db.collection("movies")

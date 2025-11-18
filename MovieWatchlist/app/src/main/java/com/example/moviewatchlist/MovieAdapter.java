@@ -40,8 +40,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         void onRatingUpdate(String movieId, double rating, Movie movie);
     }
 
-    public MovieAdapter(Context context, List<Movie> movies, FirebaseFirestore db,
-                        RatingUpdateListener listener) {
+    public MovieAdapter(Context context, List<Movie> movies, FirebaseFirestore db, RatingUpdateListener listener) {
         this.context = context;
         this.movies = movies;
         this.db = db;
@@ -64,19 +63,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         // Set title text
         holder.title.setText(movie.getTitle());
 
-        // Load poster image using Glide
+        // Load poster image
         Glide.with(context)
                 .load(movie.getPosterUrl())
                 .placeholder(R.drawable.placeholder)
                 .into(holder.poster);
 
-        // Set pre-existing rating
+        // Set default rating
         holder.ratingBar.setRating(movie.getRating());
 
         /*
-         When the user touches the rating bar:
-         - Update the local movie object with the user's rating
-         - calculate avgrating
+          update the local movie object with the user's rating
+          calculate avgrating
         */
         holder.ratingBar.setOnRatingBarChangeListener((bar, rating, fromUser) -> {
             if (fromUser) {
