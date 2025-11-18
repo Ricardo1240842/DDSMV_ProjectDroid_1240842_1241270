@@ -64,13 +64,7 @@ public class MainActivity extends AppCompatActivity {
         resultsList.setLayoutManager(new LinearLayoutManager(this));
         movieResults = new ArrayList<>();
 
-        /*
-         Adapter receives:
-         - context
-         - movie list
-         - Firestore reference
-         - callback to update the global rating in the "movies" collection
-        */
+       
         adapter = new MovieAdapter(this, movieResults, db, this::updateGlobalRating);
         resultsList.setAdapter(adapter);
 
